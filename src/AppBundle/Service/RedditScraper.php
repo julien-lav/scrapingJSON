@@ -23,25 +23,40 @@ class RedditScraper
 	public function scrape()
 	{
 		$client = new \GuzzleHttp\Client();
+		$after = null;
 
-		$response = $client->request('GET', 'https://api.reddit.com/r/php.json'); 
-
-		$contents = json_decode($response->getBody()->getContents(), true);
-
-		foreach ($contents['data']['children'] as $child) 
+		for ($i=0; $i<5; $i++)
 		{
-			$redditPost = new RedditPost();
-			$redditPost->setTitle($child['data']['title']);
-			
-			$redditAuthor = new RedditAuthor();
-			$redditAuthor->setName($child['data']['author']); 
+		$response = $client->request('GET', 'https://api.reddit.com/r/php.json?limit=25&after=' . $after); 
 
+		$contents[$i] = json_decode($response->getBody()->getContents(), true);
 
-			$this->em->persist($redditPost);
-			$this->em->persist($redditAuthor);
+		$after = $contents[$i]['data']['after'];
 		}
 
-			$this->em->flush();
+		foreach ($contents as $content) {
+			foreach ($content['data']['children'] as $child) 
+			{
+				$redditPost = new RedditPost();
+				$redditPost->setTitle($child['data']['title']);
+
+				$redditAuthor = $this->em->getRepository('AppBundle:RedditAuthor')->findOneBy([
+					'name' => $child['data']['author'],
+				]); 
+					if(!$redditAuthor) 
+					{
+						$redditAuthor = new RedditAuthor();
+						$redditAuthor->setName($child['data']['author']);
+						$this->em->persist($redditAuthor);
+						$this->em->flush();
+
+					}
+				$redditAuthor->addPost($redditPost);
+
+				$this->em->persist($redditPost);
+			}
+		}
+		$this->em->flush();
 	}
 }
 

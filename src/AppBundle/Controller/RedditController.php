@@ -16,7 +16,44 @@ class RedditController extends Controller
      */
 	public function listAction() 
 	{
-		$posts = $this->getDoctrine()->getRepository('AppBundle:RedditPost')->findAll();
+		//$posts = $this->getDoctrine()->getRepository('AppBundle:RedditPost')->findAll();
+
+		/*$query = $this->getDoctrine()->getManager()->createQuery(
+			"
+			SELECT p, a
+			FROM AppBundle\Entity\RedditPost p
+			JOIN p.author a
+			WHERE p.id >= :id
+			ORDER BY a.name DESC
+			"
+		)->setParameter('id', 1);
+
+		$posts = $query
+			->setFirstResult(200)
+			->setMaxResults(5)
+			->getResult();
+		*/
+		/*
+		$query = $this->getDoctrine()->getRepository('AppBundle:RedditPost')
+			->createQueryBuilder('p')
+			->join('p.author', 'a')
+			->addSelect('a')
+			->where('p.id > :id')
+			->setParameter('id', 10)
+			->orderBy('a.name', 'DESC')
+			->getQuery();
+
+			// if($i > 10){$query->where('')}
+		
+		$posts = $query->getResult();	
+		*/
+		$posts = $this
+			->getDoctrine()
+			->getRepository('AppBundle\Entity\RedditPost')	
+			->someQueryWeCareAbout(20);
+
+			
+		dump($posts); 
 
 		return $this->render('reddit/index.html.twig', [
 			'posts' => $posts,

@@ -4,7 +4,7 @@
 
 {% for post in posts %}
 
-<p>{{ post.title }}</p>
+<li><span style="font-weight:bold;"> {{ post.title }}</span> - <span style="color:red;"> {{ post.author.name }} </span></li>
 
 {% endfor %}
 
